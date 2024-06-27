@@ -3,7 +3,6 @@ import {
   injectMutation,
   injectQuery,
   injectQueryClient,
-  keepPreviousData,
 } from '@tanstack/angular-query-experimental';
 import { RequestOptions } from '@my/shared/data';
 import { UsersApiService } from './users-api.service';
@@ -31,7 +30,6 @@ function pageQuery(requestOptions: Signal<RequestOptions>) {
   return injectQuery(() => ({
     queryKey: queryKeys.list(requestOptions()),
     queryFn: () => usersApi.fetchPage(requestOptions()),
-    placeholderData: keepPreviousData,
     ...queryOptions,
   }));
 }

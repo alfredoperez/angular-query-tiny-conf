@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { RowClickedEvent } from 'ag-grid-community';
@@ -13,6 +13,7 @@ import { User, usersQuery } from '@my/users/data';
 import { AddUserModalComponent } from '@my/users/shared/components/add-user-modal.component';
 import { columnDefs } from '@my/users/users-page/user-page.models';
 import { DataViewerStore } from '../../shared/state';
+import { RequestOptions } from '@my/shared/data';
 
 @Component({
   standalone: true,
@@ -69,7 +70,7 @@ import { DataViewerStore } from '../../shared/state';
             <ui-pagination
               [totalItems]="totalItems()"
               [itemsPerPage]="20"
-              [currentPage]="this.store.page() ?? 1"
+              [currentPage]="currentPage() "
               (currentPageChange)="handleCurrentPageChange($event)"
             />
           </div>
@@ -81,9 +82,21 @@ import { DataViewerStore } from '../../shared/state';
 export class UsersPageComponent {
   #modalService = inject(ModalService);
   #router = inject(Router);
-  store = inject(DataViewerStore);
+  currentPage = signal(1);
+  searchQuery= signal('');
 
-  usersQuery = usersQuery.page(this.store.requestOptions);
+  requestOptions = computed(() => {
+    return {
+      pagination: {
+        limit: 20,
+        page: this.currentPage(),
+      },
+      orderBy: 'age',
+      orderDirection: 'ASC',
+    } as RequestOptions;
+  });
+
+  usersQuery = usersQuery.page(this.requestOptions);
 
   users = computed(() => this.usersQuery.data()?.items || []);
 
@@ -91,18 +104,6 @@ export class UsersPageComponent {
 
   isPlaceholderData = this.usersQuery.isPlaceholderData;
 
-  prefetchNextPage = usersQuery.prefetchNextPage(this.store.requestOptions);
-
-  constructor() {
-    effect(() => {
-      if (
-        !this.usersQuery.isPlaceholderData() &&
-        this.usersQuery.data()?.hasMore
-      ) {
-        this.prefetchNextPage.prefetch();
-      }
-    });
-  }
 
   public addUser() {
     this.#modalService.open(AddUserModalComponent, DefaultOptions);
@@ -116,12 +117,12 @@ export class UsersPageComponent {
   }
 
   handleCurrentPageChange(page: number) {
-    this.store.setPage(page);
+    this.currentPage.set(page);
   }
 
   handleSearchQueryChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
-    this.store.setSearchQuery(value);
+    this.searchQuery.set(value);
   }
 
   protected readonly columnDefs = columnDefs;
