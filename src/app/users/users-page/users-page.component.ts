@@ -3,12 +3,7 @@ import { Component, computed, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { RowClickedEvent } from 'ag-grid-community';
-import {
-  ButtonComponent,
-  DefaultOptions,
-  ModalService,
-  PaginationComponent,
-} from '@my/shared/ui';
+import { ButtonComponent, DefaultOptions, ModalService, PaginationComponent } from '@my/shared/ui';
 import { User, usersQuery } from '@my/users/data';
 import { AddUserModalComponent } from '@my/users/shared/components/add-user-modal.component';
 import { columnDefs } from '@my/users/users-page/user-page.models';
@@ -69,7 +64,7 @@ import { DataViewerStore } from '../../shared/state';
             <ui-pagination
               [totalItems]="totalItems()"
               [itemsPerPage]="20"
-              [currentPage]="this.store.page() ?? 1"
+              [currentPage]="store.page() ?? 1 "
               (currentPageChange)="handleCurrentPageChange($event)"
             />
           </div>
@@ -90,8 +85,9 @@ export class UsersPageComponent {
   totalItems = computed(() => this.usersQuery.data()?.total || 0);
 
   isPlaceholderData = this.usersQuery.isPlaceholderData;
-
-  prefetchNextPage = usersQuery.prefetchNextPage(this.store.requestOptions);
+  prefetchedNextPageQuery = usersQuery.prefetchNextPage(
+    this.store.requestOptions,
+  );
 
   constructor() {
     effect(() => {
@@ -99,7 +95,7 @@ export class UsersPageComponent {
         !this.usersQuery.isPlaceholderData() &&
         this.usersQuery.data()?.hasMore
       ) {
-        this.prefetchNextPage.prefetch();
+        this.prefetchedNextPageQuery.prefetch();
       }
     });
   }
