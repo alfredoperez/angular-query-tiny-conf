@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { RowClickedEvent } from 'ag-grid-community';
@@ -70,7 +70,7 @@ import { RequestOptions } from '@my/shared/data';
             <ui-pagination
               [totalItems]="totalItems()"
               [itemsPerPage]="20"
-              [currentPage]="currentPage() "
+              [currentPage]="store.page() ?? 1 "
               (currentPageChange)="handleCurrentPageChange($event)"
             />
           </div>
@@ -82,28 +82,15 @@ import { RequestOptions } from '@my/shared/data';
 export class UsersPageComponent {
   #modalService = inject(ModalService);
   #router = inject(Router);
-  currentPage = signal(1);
-  searchQuery= signal('');
+  store = inject(DataViewerStore);
 
-  requestOptions = computed(() => {
-    return {
-      pagination: {
-        limit: 20,
-        page: this.currentPage(),
-      },
-      orderBy: 'age',
-      orderDirection: 'ASC',
-    } as RequestOptions;
-  });
-
-  usersQuery = usersQuery.page(this.requestOptions);
+  usersQuery = usersQuery.page(this.store.requestOptions);
 
   users = computed(() => this.usersQuery.data()?.items || []);
 
   totalItems = computed(() => this.usersQuery.data()?.total || 0);
 
   isPlaceholderData = this.usersQuery.isPlaceholderData;
-
 
   public addUser() {
     this.#modalService.open(AddUserModalComponent, DefaultOptions);
@@ -117,12 +104,12 @@ export class UsersPageComponent {
   }
 
   handleCurrentPageChange(page: number) {
-    this.currentPage.set(page);
+    this.store.setPage(page);
   }
 
   handleSearchQueryChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
-    this.searchQuery.set(value);
+    this.store.setSearchQuery(value);
   }
 
   protected readonly columnDefs = columnDefs;

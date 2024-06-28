@@ -2,7 +2,7 @@ import { Signal, inject } from '@angular/core';
 import {
   injectMutation,
   injectQuery,
-  injectQueryClient,
+  injectQueryClient
 } from '@tanstack/angular-query-experimental';
 import { RequestOptions } from '@my/shared/data';
 import { UsersApiService } from './users-api.service';
