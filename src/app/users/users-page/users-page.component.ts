@@ -1,19 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { RowClickedEvent } from 'ag-grid-community';
-import {
-  ButtonComponent,
-  DefaultOptions,
-  ModalService,
-  PaginationComponent,
-} from '@my/shared/ui';
+import { ButtonComponent, DefaultOptions, ModalService, PaginationComponent } from '@my/shared/ui';
 import { User, usersQuery } from '@my/users/data';
 import { AddUserModalComponent } from '@my/users/shared/components/add-user-modal.component';
 import { columnDefs } from '@my/users/users-page/user-page.models';
 import { DataViewerStore } from '../../shared/state';
-import { RequestOptions } from '@my/shared/data';
 
 @Component({
   standalone: true,
@@ -91,6 +85,20 @@ export class UsersPageComponent {
   totalItems = computed(() => this.usersQuery.data()?.total || 0);
 
   isPlaceholderData = this.usersQuery.isPlaceholderData;
+  prefetchedNextPageQuery = usersQuery.prefetchNextPage(
+    this.store.requestOptions,
+  );
+
+  constructor() {
+    effect(() => {
+      if (
+        !this.usersQuery.isPlaceholderData() &&
+        this.usersQuery.data()?.hasMore
+      ) {
+        this.prefetchedNextPageQuery.prefetch();
+      }
+    });
+  }
 
   public addUser() {
     this.#modalService.open(AddUserModalComponent, DefaultOptions);
