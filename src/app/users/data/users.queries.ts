@@ -1,9 +1,5 @@
-import { Signal, inject } from '@angular/core';
-import {
-  injectMutation,
-  injectQuery,
-  injectQueryClient
-} from '@tanstack/angular-query-experimental';
+import { inject, Signal } from '@angular/core';
+import { injectMutation, injectQuery, injectQueryClient, keepPreviousData } from '@tanstack/angular-query-experimental';
 import { RequestOptions } from '@my/shared/data';
 import { UsersApiService } from './users-api.service';
 import { User } from './users.models';
@@ -30,6 +26,7 @@ function pageQuery(requestOptions: Signal<RequestOptions>) {
   return injectQuery(() => ({
     queryKey: queryKeys.list(requestOptions()),
     queryFn: () => usersApi.fetchPage(requestOptions()),
+    placeholderData: keepPreviousData,
     ...queryOptions,
   }));
 }
